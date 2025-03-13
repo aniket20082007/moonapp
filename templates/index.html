@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moon Visibility Finder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e2f;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        form {
+            background: #2a2a3a;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            margin: 20px auto;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background: #333;
+            color: white;
+        }
+
+        button {
+            margin-top: 15px;
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            padding: 10px;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            margin: 20px auto;
+        }
+
+        .loading svg {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h2>Moon Visibility Finder</h2>
+
+    <form id="moonForm">
+        <label for="birthdate">Birthdate:</label>
+        <input type="date" id="birthdate" name="birthdate" required>
+
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date" required>
+
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date" required>
+
+        <button type="submit">Find Closest Match</button>
+    </form>
+
+    <!-- Loading Spinner -->
+    <div class="loading" id="loading">
+        <svg width="50" height="50" viewBox="0 0 50 50">
+            <circle cx="25" cy="25" r="20" stroke="white" stroke-width="4" fill="none" stroke-dasharray="100" stroke-dashoffset="0">
+                <animate attributeName="stroke-dashoffset" values="100;0" dur="1s" repeatCount="indefinite"/>
+            </circle>
+        </svg>
+    </div>
+
+    <h3>Results:</h3>
+    <p id="result"></p>
+
+    <script>
+        document.getElementById("moonForm").onsubmit = async function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const resultElement = document.getElementById("result");
+            const loadingElement = document.getElementById("loading");
+
+            resultElement.textContent = "";  // Clear previous results
+            loadingElement.style.display = "block";  // Show loader
+
+            const response = await fetch("/calculate", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+            loadingElement.style.display = "none";  // Hide loader
+
+            if (data.error) {
+                resultElement.innerHTML = `<span style="color: red;">Error: ${data.error}</span>`;
+            } else {
+                resultElement.innerHTML = `
+                    <b>Birthdate Visibility:</b> ${data.birthdate_visibility}%<br>
+                    <b>Target Brightness Factor (TBF):</b> ${data.tbf}%<br>
+                    <b>Closest Match Date(s):</b> ${data.closest_dates.join(", ")}
+                `;
+            }
+        };
+    </script>
+
+</body>
+</html>
